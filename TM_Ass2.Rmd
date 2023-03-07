@@ -1,0 +1,274 @@
+---
+title: "TM_Ass1"
+author: "Chanthrika Palanisamy"
+date: "2023-02-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#loading the dataset by setting the all StringsAsFactor = TRUE
+arm <- read.transactions("/Users/rika/Documents/TM/crypto_transaction_nolabel.csv",  rm.duplicates = TRUE, format = "basket", sep = ",")
+```
+
+```{r}
+#loading the dataset by setting the all StringsAsFactor = TRUE
+arm_l <- read.transactions("/Users/rika/Documents/TM/crypto_transaction.csv",  rm.duplicates = TRUE, format = "basket", sep = ",")
+```
+
+```{r}
+mydat_tibble <- arm %>% 
+  rename("crypto" = "cryptocurrency")
+```
+
+
+```{r}
+#Setting support, confidence and calling apriori from arules package
+rules = arules::apriori(arm, parameter = list(support=.011, 
+                                                 confidence=0.5, minlen=2))
+```
+
+
+
+```{r}
+sup_rules <- sort(rules, decreasing=TRUE, by="support")
+sup_rules <- sup_rules[!is.redundant(sup_rules)]
+conf_rules <- sort(rules, decreasing=TRUE, by="confidence")
+conf_rules <- conf_rules[!is.redundant(conf_rules)]
+lift_rules <- sort(rules, decreasing=TRUE, by="lift")
+lift_rules <- lift_rules[!is.redundant(lift_rules)]
+```
+
+```{r}
+gi <- generatingItemsets(sup_rules)
+d <- which(duplicated(gi))
+sup_rules = sup_rules[-d]
+gi <- generatingItemsets(conf_rules)
+d <- which(duplicated(gi))
+conf_rules = conf_rules[-d]
+gi <- generatingItemsets(lift_rules)
+d <- which(duplicated(gi))
+lift_rules = lift_rules[-d]
+```
+
+```{r}
+rules <- rules[!is.redundant(rules)]
+gi <- generatingItemsets(rules)
+d <- which(duplicated(gi))
+rules = rules[-d]
+```
+
+
+```{r}
+#lets take a look at the rules
+sub
+``` 
+
+```{r}
+inspect(rules[1:71])
+```
+```{r}
+inspect(lift_rules[1:71])
+inspect(sup_rules[1:71])
+inspect(conf_rules[1:71])
+```
+
+
+
+```{r}
+#Visualizing rules
+subrules <- head(sort(rules, by="confidence"),15)
+plot(subrules, method="graph", engine="htmlwidget")
+
+```
+
+
+```{r}
+#Setting support, confidence, RHS = "WOMAN" and calling apriori from arules package
+polkadot_Rules <- arules::apriori(data=arm_l,parameter = list(supp=.01, conf=.5, minlen=2),
+                     appearance = list(default="lhs", rhs="polkadot"),
+                     control=list(verbose=FALSE))
+```
+
+```{r}
+#Setting support, confidence, RHS = "WOMAN" and calling apriori from arules package
+bitcoin_Rules <- arules::apriori(data=arm_l,parameter = list(supp=.003, conf=.05, minlen=2),
+                     appearance = list(default="lhs", rhs="bitcoin"),
+                     control=list(verbose=FALSE))
+```
+
+```{r}
+#Setting support, confidence, RHS = "WOMAN" and calling apriori from arules package
+tether_Rules <- arules::apriori(data=arm_l,parameter = list(supp=.01, conf=.05, minlen=2),
+                     appearance = list(default="lhs", rhs="tether"),
+                     control=list(verbose=FALSE))
+```
+
+```{r}
+#Setting support, confidence, RHS = "WOMAN" and calling apriori from arules package
+dogecoin_Rules <- arules::apriori(data=arm_l,parameter = list(supp=.003, conf=.05, minlen=2),
+                     appearance = list(default="lhs", rhs="dogecoin"),
+                     control=list(verbose=FALSE))
+```
+
+```{r}
+dogecoin_Rules <- dogecoin_Rules[!is.redundant(dogecoin_Rules)]
+conf_dogecoin_Rules <- sort(dogecoin_Rules, decreasing=TRUE, by="support")
+inspect(conf_dogecoin_Rules[1:50])
+```
+
+```{r}
+tether_Rules <- tether_Rules[!is.redundant(tether_Rules)]
+sup_tether_Rules <- sort(tether_Rules, decreasing=TRUE, by="support")
+inspect(sup_tether_Rules[1:24])
+```
+
+```{r}
+bitcoin_Rules <- bitcoin_Rules[!is.redundant(bitcoin_Rules)]
+conf_bitcoin_Rules <- sort(bitcoin_Rules, decreasing=TRUE, by="support")
+inspect(conf_bitcoin_Rules[1:50])
+```
+
+
+```{r}
+polkadot_Rules <- polkadot_Rules[!is.redundant(polkadot_Rules)]
+conf_polkadot_Rules <- sort(polkadot_Rules, decreasing=TRUE, by="support")
+inspect(conf_polkadot_Rules[1:29])
+```
+
+
+```{r}
+
+gi <- generatingItemsets(dogecoin_Rules)
+d <- which(duplicated(gi))
+dogecoin_Rules = dogecoin_Rules[-d]
+```
+
+
+
+```{r}
+inspect(polkadot_Rules[1:15])
+```
+```{r}
+inspect(dogecoin_Rules[1:15])
+```
+```{r}
+inspect(tether_Rules[1:15])
+```
+```{r}
+inspect(bitcoin_Rules[1:15])
+```
+
+```{r}
+#Visualizing rules when RHS = "polkadot"
+plot(polkadot_Rules, method="graph", engine="htmlwidget")
+```
+
+
+```{r}
+itemFrequencyPlot(arm, topN=20, type="absolute")
+```
+
+
+Aravindh Saravanan
+4:20 PM (11 minutes ago)
+to me
+
+# Clustering - Hierarchical
+
+# Create the corpus manually and now load them
+```{r}
+library(corpus)
+library(tm)
+
+SmallCorpus <- Corpus(DirSource("/Users/rika/Documents/TM/Corpus_TM"))
+ndocs<-length(SmallCorpus)
+
+## Do some clean-up.............
+SmallCorpus <- tm_map(SmallCorpus, content_transformer(tolower))
+SmallCorpus <- tm_map(SmallCorpus, removePunctuation)
+## Remove all Stop Words
+SmallCorpus <- tm_map(SmallCorpus, removeWords, stopwords("english"))
+```
+
+```{r}
+# install.packages("tm")
+library(tm)
+
+# Convert the data into to a Document Term Matrix
+# hclust_in_data<-data$content
+
+SmallCorpus_DTM <- DocumentTermMatrix(SmallCorpus,
+                                 control = list(
+                                   stopwords = TRUE, ## remove normal stopwords
+                                   wordLengths=c(3, 10), ## get rid of words of len 2 or smaller or larger than15
+                                   removePunctuation = TRUE,
+                                   removeNumbers = TRUE,
+                                   tolower=TRUE
+                                 ))
+
+inspect(SmallCorpus_DTM)
+```
+
+
+```{r}
+# install.packages("NbClust")
+library(NbClust)
+library(factoextra)
+# Convert to DF
+SmallCorpus_DF_DT <- as.data.frame(as.matrix(SmallCorpus_DTM))
+
+# Using Sihouette to determine the optimal number of clusters
+fviz_nbclust(SmallCorpus_DF_DT, method = "silhouette", FUN = hcut, k.max = 3)
+
+#Source: http://www.sthda.com/english/articles/29-cluster-validation-essentials/96-determiningthe-optimal-number-of-clusters-3-must-know-methods/#:~:text=fviz_nbclust()%20function%20%5Bin%20factoextra,)%2C%20CLARA%2C%20HCUT%5D
+```
+
+
+```{r}
+(My_m <- (as.matrix(scale(t(SmallCorpus_DF_DT)))))
+(My_cosine_dist = 1-crossprod(My_m) /(sqrt(colSums(My_m^2)%*%t(colSums(My_m^2)))))
+# create dist object
+My_cosine_dist <- as.dist(My_cosine_dist) ## Important
+HClust_Ward_CosSim_SmallCorp2 <- hclust(My_cosine_dist, method="ward.D")
+plot(HClust_Ward_CosSim_SmallCorp2, cex=.7, hang=-30,main = "Cosine Sim")
+rect.hclust(HClust_Ward_CosSim_SmallCorp2, k=3)
+
+
+```
+
+
+```{r}
+Dist_CorpusM2 <- dist(SmallCorpus_DF_DT, method = "cosine")
+
+HClust_SmallCorp <- hclust(Dist_CorpusM2, method = "average" )
+
+plot(HClust_SmallCorp)
+
+#plot(Dist_CorpusM2, cex=0.9, hang=-1, main = "Minkowski p=2 (Euclidean)")
+
+rect.hclust(HClust_SmallCorp, k=3)
+```
+
+
+```{r}
+
+CosineSim <- My_novels_m / sqrt(rowSums(My_novels_m * My_novels_m))
+CosineSim <- CosineSim %*% t(CosineSim)
+
+#Convert to distance metric
+
+D_Cos_Sim <- as.dist(1-CosineSim)
+
+HClust_Ward_CosSim_SmallCorp2 <- hclust(D_Cos_Sim, method="ward.D2")
+plot(HClust_Ward_CosSim_SmallCorp2, cex=.7, hang=-11,main = "Cosine Sim")
+rect.hclust(HClust_Ward_CosSim_SmallCorp2, k=4)
+
+```
+
+
+```{r}
+```
